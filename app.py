@@ -28,17 +28,7 @@ supabase_key = st.secrets.get("SUPABASE_KEY") or os.getenv("SUPABASE_KEY")
 if not supabase_url or not supabase_key:
     raise ValueError("请设置环境变量 SUPABASE_URL 和 SUPABASE_KEY")
 
-# 调试信息（仅用于排查问题）
-st.write(f"Supabase URL: {supabase_url[:20]}..." if len(supabase_url) > 20 else f"Supabase URL: {supabase_url}")
-st.write(f"Supabase Key: {supabase_key[:20]}..." if len(supabase_key) > 20 else f"Supabase Key: {supabase_key}")
-
-try:
-    supabase: Client = create_client(supabase_url, supabase_key)
-except Exception as e:
-    st.error(f"Supabase 初始化失败: {str(e)}")
-    st.error(f"URL 类型: {type(supabase_url)}, 长度: {len(supabase_url)}")
-    st.error(f"Key 类型: {type(supabase_key)}, 长度: {len(supabase_key)}")
-    raise
+supabase: Client = create_client(supabase_url, supabase_key)
 
 # 页面配置
 st.set_page_config(
