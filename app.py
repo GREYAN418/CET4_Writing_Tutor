@@ -7,12 +7,12 @@ from typing import Dict, List, Optional
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
-# 加载 .env 文件
+# 加载 .env 文件（仅用于本地开发）
 load_dotenv()
 
 # 初始化 OpenAI 客户端（使用阿里云 Qwen-Max）
-# 支持 DASHSCOPE_API_KEY 或 OPENAI_API_KEY 环境变量
-api_key = os.getenv("DASHSCOPE_API_KEY") or os.getenv("OPENAI_API_KEY")
+# 优先使用 st.secrets，其次使用环境变量
+api_key = st.secrets.get("DASHSCOPE_API_KEY") or os.getenv("DASHSCOPE_API_KEY") or st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
 if not api_key:
     raise ValueError("请设置环境变量 DASHSCOPE_API_KEY 或 OPENAI_API_KEY")
 
@@ -22,8 +22,8 @@ client = OpenAI(
 )
 
 # 初始化 Supabase 客户端
-supabase_url = os.getenv("SUPABASE_URL")
-supabase_key = os.getenv("SUPABASE_KEY")
+supabase_url = st.secrets.get("SUPABASE_URL") or os.getenv("SUPABASE_URL")
+supabase_key = st.secrets.get("SUPABASE_KEY") or os.getenv("SUPABASE_KEY")
 if not supabase_url or not supabase_key:
     raise ValueError("请设置环境变量 SUPABASE_URL 和 SUPABASE_KEY")
 
