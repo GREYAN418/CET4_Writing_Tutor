@@ -1,0 +1,26 @@
+# 环境变量（包含 API Key）
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# 虚拟环境
+.venv/
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 数据文件（可选，如果不想提交用户数据）
+data/
+
+# Streamlit
+.streamlit/
