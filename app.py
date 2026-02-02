@@ -43,15 +43,26 @@ st.set_page_config(
 st.markdown("""
 <style>
     [data-testid="stHeader"] {
-        display: none;
+        display: none !important;
     }
     /* 隐藏右上角菜单 */
     [data-testid="stAppViewBlockContainer"] > div:nth-child(2) {
-        display: none;
+        display: none !important;
     }
-    /* 隐藏右下角 manage app */
+    /* 隐藏右下角 manage app - 尝试多种选择器 */
     [data-testid="stStatusWidget"] {
-        display: none;
+        display: none !important;
+    }
+    .stDeployButton {
+        display: none !important;
+    }
+    /* 隐藏 Streamlit Cloud 的管理按钮 */
+    button[title="Manage app"] {
+        display: none !important;
+    }
+    /* 隐藏右下角所有可能的按钮 */
+    div[data-testid="stBottomBlockContainer"] {
+        display: none !important;
     }
 </style>
 """, unsafe_allow_html=True)
