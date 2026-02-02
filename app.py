@@ -30,10 +30,6 @@ if not supabase_url or not supabase_key:
 
 supabase: Client = create_client(supabase_url, supabase_key)
 
-# 初始化简洁模式状态
-if "clean_mode" not in st.session_state:
-    st.session_state.clean_mode = False
-
 # 页面配置
 st.set_page_config(
     page_title="CET4 微写作训练",
@@ -43,9 +39,8 @@ st.set_page_config(
     menu_items={}
 )
 
-# 隐藏顶部菜单栏和简洁模式样式
-if st.session_state.clean_mode:
-    st.markdown("""
+# 隐藏顶部菜单栏和界面元素（简洁模式）
+st.markdown("""
 <style>
     [data-testid="stHeader"] {
         display: none;
@@ -56,14 +51,6 @@ if st.session_state.clean_mode:
     }
     /* 隐藏右下角 manage app */
     [data-testid="stStatusWidget"] {
-        display: none;
-    }
-</style>
-""", unsafe_allow_html=True)
-else:
-    st.markdown("""
-<style>
-    [data-testid="stHeader"] {
         display: none;
     }
 </style>
@@ -651,17 +638,12 @@ def ask_ai_assistant(question: str) -> str:
 # 侧边栏
 def sidebar():
     with st.sidebar:
-        # 标题 - 可点击切换简洁模式
-        if st.button("✍️", key="logo_click", help="点击切换简洁模式"):
-            st.session_state.clean_mode = not st.session_state.clean_mode
-            st.rerun()
-        
+        # 标题
         st.markdown(
-            f"""
-            <div style='text-align: center; padding: 10px 0 5px 0; cursor: pointer;' onclick="document.querySelector('[data-testid=\"stButton\"]').click()">
+            """
+            <div style='text-align: center; padding: 10px 0 5px 0;'>
                 <h1 style='margin: 0; color: #1f77b4; font-size: 32px;'>✍️</h1>
                 <h2 style='margin: 5px 0 0 0; font-size: 20px;'>CET4 微写作</h2>
-                <p style='margin: 5px 0 0 0; font-size: 12px; color: #888;'>{'简洁模式' if st.session_state.clean_mode else '完整模式'}</p>
             </div>
             """,
             unsafe_allow_html=True
@@ -1201,7 +1183,6 @@ def weakness_page():
         filtered_points = [p for p in weakness_points if p.get("type", "其他") in selected_types]
     else:
         filtered_points = weakness_points
-
     # 按模式分组
     mode_groups = {}
     for point in filtered_points:
