@@ -19,7 +19,7 @@ ENV/
 *.swp
 *.swo
 
-# 数据文件（可选，如果不想提交用户数据）
+# 数据文件（本地数据不再使用，已迁移到 Supabase）
 data/
 
 # Streamlit

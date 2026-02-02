@@ -5,6 +5,7 @@ from datetime import datetime, date
 from openai import OpenAI
 from typing import Dict, List, Optional
 from dotenv import load_dotenv
+from supabase import create_client, Client
 
 # 加载 .env 文件
 load_dotenv()
@@ -19,6 +20,14 @@ client = OpenAI(
     api_key=api_key,
     base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
 )
+
+# 初始化 Supabase 客户端
+supabase_url = os.getenv("SUPABASE_URL")
+supabase_key = os.getenv("SUPABASE_KEY")
+if not supabase_url or not supabase_key:
+    raise ValueError("请设置环境变量 SUPABASE_URL 和 SUPABASE_KEY")
+
+supabase: Client = create_client(supabase_url, supabase_key)
 
 # 页面配置
 st.set_page_config(
@@ -49,104 +58,107 @@ WRITING_MODES = {
     6: "Brainstorming"         # 周日
 }
 
-# 数据文件路径
-DATA_DIR = "data"
-WEAKNESS_FILE = os.path.join(DATA_DIR, "weakness_points.json")
-HISTORY_FILE = os.path.join(DATA_DIR, "practice_history.json")
-DAILY_QUESTION_FILE = os.path.join(DATA_DIR, "daily_question.json")
-
-# 初始化数据目录和文件
+# 初始化数据库表（兼容本地文件系统）
 def init_data_files():
-    os.makedirs(DATA_DIR, exist_ok=True)
-    if not os.path.exists(WEAKNESS_FILE):
-        with open(WEAKNESS_FILE, 'w', encoding='utf-8') as f:
-            json.dump([], f, ensure_ascii=False, indent=2)
-    if not os.path.exists(HISTORY_FILE):
-        with open(HISTORY_FILE, 'w', encoding='utf-8') as f:
-            json.dump([], f, ensure_ascii=False, indent=2)
-    if not os.path.exists(DAILY_QUESTION_FILE):
-        with open(DAILY_QUESTION_FILE, 'w', encoding='utf-8') as f:
-            json.dump({}, f, ensure_ascii=False, indent=2)
+    # Supabase 数据库已在外部创建，无需本地初始化
+    pass
 
 # 读取薄弱点数据
 def load_weakness_points() -> List[Dict]:
     try:
-        with open(WEAKNESS_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except:
+        response = supabase.table("weakness_points").select("*").order("created_at", desc=True).execute()
+        return response.data if response.data else []
+    except Exception as e:
+        st.error(f"读取薄弱点失败: {str(e)}")
         return []
 
 # 保存薄弱点数据
 def save_weakness_point(point: Dict, record_id: str = None):
-    points = load_weakness_points()
-    points.append({
-        **point,
-        "record_id": record_id,
-        "timestamp": datetime.now().isoformat()
-    })
-    with open(WEAKNESS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(points, f, ensure_ascii=False, indent=2)
+    try:
+        supabase.table("weakness_points").insert({
+            "record_id": record_id,
+            "type": point.get("type"),
+            "issue": point.get("issue"),
+            "correction": point.get("correction"),
+            "mode": point.get("mode"),
+            "timestamp": datetime.now().isoformat()
+        }).execute()
+    except Exception as e:
+        st.error(f"保存薄弱点失败: {str(e)}")
 
 # 删除同一题目的薄弱点
 def delete_weakness_points_by_record(record_id: str):
-    points = load_weakness_points()
-    filtered_points = [p for p in points if p.get("record_id") != record_id]
-    with open(WEAKNESS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(filtered_points, f, ensure_ascii=False, indent=2)
+    try:
+        supabase.table("weakness_points").delete().eq("record_id", record_id).execute()
+    except Exception as e:
+        st.error(f"删除薄弱点失败: {str(e)}")
 
 # 读取历史记录
 def load_history() -> List[Dict]:
     try:
-        with open(HISTORY_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except:
+        response = supabase.table("practice_history").select("*").order("created_at", desc=True).execute()
+        return response.data if response.data else []
+    except Exception as e:
+        st.error(f"读取历史记录失败: {str(e)}")
         return []
 
 # 保存练习记录
 def save_practice(record: Dict, update_record_id: str = None):
-    history = load_history()
-
-    if update_record_id:
-        # 更新已有记录
-        for i, h in enumerate(history):
-            if h.get("record_id") == update_record_id:
-                # 保留原有的 record_id 和 timestamp
-                record["record_id"] = update_record_id
-                record["timestamp"] = h.get("timestamp", datetime.now().isoformat())
-                history[i] = record
-                break
-    else:
-        # 创建新记录
-        record["record_id"] = f"{datetime.now().timestamp()}"
-        record["timestamp"] = datetime.now().isoformat()
-        history.append(record)
-
-    with open(HISTORY_FILE, 'w', encoding='utf-8') as f:
-        json.dump(history, f, ensure_ascii=False, indent=2)
+    try:
+        if update_record_id:
+            # 更新已有记录
+            supabase.table("practice_history").update({
+                "mode": record.get("mode"),
+                "question": record.get("question"),
+                "user_answer": record.get("user_answer"),
+                "evaluation": record.get("evaluation"),
+                "timestamp": record.get("timestamp", datetime.now().isoformat())
+            }).eq("record_id", update_record_id).execute()
+        else:
+            # 创建新记录
+            record["record_id"] = f"{datetime.now().timestamp()}"
+            record["timestamp"] = datetime.now().isoformat()
+            supabase.table("practice_history").insert({
+                "record_id": record["record_id"],
+                "mode": record.get("mode"),
+                "question": record.get("question"),
+                "user_answer": record.get("user_answer"),
+                "evaluation": record.get("evaluation"),
+                "timestamp": record["timestamp"]
+            }).execute()
+    except Exception as e:
+        st.error(f"保存练习记录失败: {str(e)}")
 
 # 保存每日题目
 def save_daily_question(date_str: str, question: Dict):
     try:
-        with open(DAILY_QUESTION_FILE, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-    except:
-        data = {}
-    
-    data[date_str] = {
-        "question": question,
-        "timestamp": datetime.now().isoformat()
-    }
-    
-    with open(DAILY_QUESTION_FILE, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+        # 检查是否已存在
+        response = supabase.table("daily_questions").select("*").eq("date_str", date_str).execute()
+        if response.data:
+            # 更新
+            supabase.table("daily_questions").update({
+                "question": question,
+                "timestamp": datetime.now().isoformat()
+            }).eq("date_str", date_str).execute()
+        else:
+            # 插入
+            supabase.table("daily_questions").insert({
+                "date_str": date_str,
+                "question": question,
+                "timestamp": datetime.now().isoformat()
+            }).execute()
+    except Exception as e:
+        st.error(f"保存每日题目失败: {str(e)}")
 
 # 加载每日题目
 def load_daily_question(date_str: str) -> Optional[Dict]:
     try:
-        with open(DAILY_QUESTION_FILE, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        return data.get(date_str, {}).get("question")
-    except:
+        response = supabase.table("daily_questions").select("*").eq("date_str", date_str).execute()
+        if response.data and len(response.data) > 0:
+            return response.data[0].get("question")
+        return None
+    except Exception as e:
+        st.error(f"加载每日题目失败: {str(e)}")
         return None
 
 # 获取当天的练习模式
