@@ -33,7 +33,7 @@ supabase: Client = create_client(supabase_url, supabase_key)
 # 页面配置
 st.set_page_config(
     page_title="CET4 微写作训练",
-    page_icon="✍️",
+    page_icon=":material/edit:",
     layout="wide",
     initial_sidebar_state="expanded",
     menu_items={}
@@ -658,21 +658,22 @@ def sidebar():
         page = st.session_state.current_page
         
         # 自定义导航按钮 - 竖向排版
-        if st.button("📝 练习页", use_container_width=True, key="nav_practice"):
+        if st.button("练习页", icon=":material/edit_note:", use_container_width=True, key="nav_practice"):
             st.session_state.current_page = "练习页"
             st.rerun()
-        
-        if st.button("📊 薄弱点页", use_container_width=True, key="nav_weakness"):
+
+        if st.button("薄弱点页", icon=":material/analytics:", use_container_width=True, key="nav_weakness"):
             st.session_state.current_page = "薄弱点页"
             st.rerun()
-        
-        if st.button("📜 历史记录", use_container_width=True, key="nav_history"):
+
+        if st.button("历史记录", icon=":material/history:", use_container_width=True, key="nav_history"):
             st.session_state.current_page = "历史记录"
             st.rerun()
-        
+
         # Ask AI 按钮
-        if st.button("🤖 AI 提问", use_container_width=True, type="primary"):
-            st.session_state.show_ai_dialog = True
+        if st.button("AI 提问", icon=":material/smart_toy:", use_container_width=True, type="primary"):
+            st.session_state.current_page = "AI 聊天"
+            st.rerun()
         
         st.markdown("---")
         
@@ -829,7 +830,7 @@ def practice_page():
 
             # 刷新批改按钮
             st.markdown("---")
-            if st.button(f"🔄 刷新批改结果 (练习 {i})", key=f"refresh_history_{i}", use_container_width=True):
+            if st.button(f"刷新批改结果 (练习 {i})", icon=":material/refresh:", key=f"refresh_history_{i}", use_container_width=True):
                 with st.spinner("正在重新批改..."):
                     # 先获取新批改结果（不自动保存薄弱点）
                     new_evaluation = evaluate_answer(mode, question, user_answer, record_id=record_id, auto_save_weakness=False)
@@ -869,7 +870,7 @@ def practice_page():
             st.markdown("---")
 
         # 继续练习按钮
-        if st.button("🔄 继续练习", type="primary", use_container_width=True):
+        if st.button("继续练习", icon=":material/refresh:", type="primary", use_container_width=True):
             with st.spinner("正在生成题目..."):
                 weakness_points = load_weakness_points()
                 question = generate_question(get_today_mode(), weakness_points)
@@ -892,7 +893,7 @@ def practice_page():
 
     # 生成题目按钮（显示在题目上方，用于首次生成）
     if not st.session_state.question:
-        if st.button("🎲 生成今日题目", type="primary", use_container_width=True):
+        if st.button("生成今日题目", icon=":material/auto_awesome:", type="primary", use_container_width=True):
             with st.spinner("正在生成题目..."):
                 question = generate_question(get_today_mode())
                 if question:
@@ -1002,7 +1003,7 @@ def practice_page():
                         st.warning("请先输入你的答案！")
             
             with col2:
-                if st.button("🔄 刷新题目", use_container_width=True):
+                if st.button("刷新题目", icon=":material/refresh:", use_container_width=True):
                     with st.spinner("正在刷新题目..."):
                         question = generate_question(get_today_mode())
                         if question:
@@ -1013,7 +1014,7 @@ def practice_page():
                             st.rerun()
             
             with col3:
-                if st.button("🗑️ 清空输入", use_container_width=True):
+                if st.button("清空输入", icon=":material/delete:", use_container_width=True):
                     st.session_state.user_answer = ""
                     st.rerun()
         
@@ -1073,7 +1074,7 @@ def practice_page():
             st.markdown("---")
             col1, col2 = st.columns(2)
             with col1:
-                if st.button("🔄 刷新批改结果", use_container_width=True):
+                if st.button("刷新批改结果", icon=":material/refresh:", use_container_width=True):
                     with st.spinner("正在重新批改..."):
                         # 先获取新批改结果（不自动保存薄弱点）
                         new_evaluation = evaluate_answer(
@@ -1120,7 +1121,7 @@ def practice_page():
                             st.error("批改失败，请重试")
 
             with col2:
-                if st.button("🔄 继续练习", type="primary", use_container_width=True):
+                if st.button("继续练习", icon=":material/refresh:", type="primary", use_container_width=True):
                     st.session_state.question = None
                     st.session_state.user_answer = ""
                     st.session_state.evaluation = None
@@ -1289,52 +1290,203 @@ def history_page():
                 st.caption(f"🕐 时间：{record.get('timestamp', '')}")
                 st.markdown("---")
 
-# AI 助手对话框
-def ai_assistant_dialog():
-    if st.session_state.get("show_ai_dialog", False):
-        st.markdown("---")
-        st.subheader("🤖 学习搭子")
-        
-        st.write("嘿！有什么英语学习问题尽管问我，我们一起攻克四级！")
-        
-        question = st.text_area(
-            "请输入你的问题：",
-            height=100,
-            placeholder="例如：如何正确使用 'affect' 和 'effect'？",
-            key="ai_question"
+# 对话管理辅助函数
+def init_ai_chat_state():
+    """初始化 AI 聊天状态"""
+    if "ai_conversations" not in st.session_state:
+        st.session_state.ai_conversations = []
+    if "current_conversation_id" not in st.session_state:
+        st.session_state.current_conversation_id = None
+
+def create_new_conversation():
+    """创建新对话"""
+    import time
+    conversation = {
+        "id": f"conv_{int(time.time())}",
+        "title": "新对话",
+        "created_at": datetime.now().isoformat(),
+        "messages": []
+    }
+    st.session_state.ai_conversations.insert(0, conversation)
+    st.session_state.current_conversation_id = conversation["id"]
+    return conversation["id"]
+
+def get_current_conversation():
+    """获取当前对话"""
+    conv_id = st.session_state.current_conversation_id
+    if not conv_id:
+        return None
+    for conv in st.session_state.ai_conversations:
+        if conv["id"] == conv_id:
+            return conv
+    return None
+
+def add_message_to_conversation(role, content):
+    """添加消息到当前对话"""
+    conv = get_current_conversation()
+    if conv:
+        message = {
+            "role": role,
+            "content": content,
+            "timestamp": datetime.now().isoformat()
+        }
+        conv["messages"].append(message)
+
+        # 如果是第一条用户消息，更新对话标题
+        if role == "user" and len(conv["messages"]) == 1:
+            conv["title"] = content[:30] + ("..." if len(content) > 30 else "")
+
+def get_conversation_context(conv_id=None, max_turns=5):
+    """获取对话上下文"""
+    if not conv_id:
+        conv_id = st.session_state.current_conversation_id
+    if not conv_id:
+        return []
+
+    conv = get_current_conversation()
+    if not conv:
+        return []
+
+    messages = conv["messages"]
+    # 保留最近的 N 轮对话（1轮 = 1个用户 + 1个助手）
+    if len(messages) > max_turns * 2:
+        messages = messages[-max_turns * 2:]
+
+    # 转换为 API 格式
+    api_messages = []
+    for msg in messages:
+        api_messages.append({
+            "role": msg["role"],
+            "content": msg["content"]
+        })
+    return api_messages
+
+def ask_ai_with_context(messages):
+    """带上下文的 AI 调用"""
+    system_prompt = "你是我的英语学习搭子！我们都是四级备考的战友。请用轻松、口语化的中文跟我交流，就像朋友聊天一样。回答问题时：1）不要追求简洁，可以详细展开讲；2）结合四级备考的背景，补充相关的考点、高频词汇、易错点等；3）多用例子和场景帮助理解；4）鼓励我，给我实用的学习建议。记住：我们是朋友，不是师生！"
+
+    # 构建消息列表
+    api_messages = [
+        {"role": "system", "content": system_prompt}
+    ]
+    api_messages.extend(messages)
+
+    try:
+        response = client.chat.completions.create(
+            model="qwen-max",
+            messages=api_messages,
+            temperature=0.8,
+            max_tokens=2000,
+            stream=True
         )
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("发送", type="primary", key="ai_send"):
-                if question.strip():
-                    st.session_state.ai_stream = ask_ai_assistant(question)
-                    st.session_state.ai_answer_shown = False
-                else:
-                    st.warning("请输入问题！")
-        
-        with col2:
-            if st.button("关闭", key="ai_close"):
-                st.session_state.show_ai_dialog = False
-                st.session_state.ai_answer_shown = False
-                st.rerun()
-        
-        # 显示 AI 回答（流式输出）
-        if st.session_state.get("ai_stream") and not st.session_state.get("ai_answer_shown", False):
+        return response
+    except Exception as e:
+        return None
+
+# AI 聊天页面
+def ai_chat_page():
+    # 初始化状态
+    init_ai_chat_state()
+
+    # 如果没有对话，创建新对话
+    if not st.session_state.ai_conversations:
+        create_new_conversation()
+
+    # 布局：左侧对话列表，右侧聊天区域
+    col1, col2 = st.columns([1, 3])
+
+    # 左侧：对话列表
+    with col1:
+
+        # 新建对话按钮
+        if st.button("新建对话", icon=":material/add:", use_container_width=True, key="new_conv"):
+            create_new_conversation()
+            st.rerun()
+
+        # 显示对话列表
+        for conv in st.session_state.ai_conversations:
+            is_current = conv["id"] == st.session_state.current_conversation_id
+
+            # 显示对话信息
+            with st.container():
+                col_title, col_del = st.columns([4, 1])
+                with col_title:
+                    if st.button(
+                        conv["title"],
+                        key=f"conv_{conv['id']}",
+                        use_container_width=True,
+                        type="primary" if is_current else "secondary"
+                    ):
+                        st.session_state.current_conversation_id = conv["id"]
+                        st.rerun()
+                with col_del:
+                    if st.button("×", key=f"del_{conv['id']}", help="删除对话"):
+                        st.session_state.ai_conversations = [
+                            c for c in st.session_state.ai_conversations
+                            if c["id"] != conv["id"]
+                        ]
+                        if st.session_state.current_conversation_id == conv["id"]:
+                            if st.session_state.ai_conversations:
+                                st.session_state.current_conversation_id = st.session_state.ai_conversations[0]["id"]
+                            else:
+                                create_new_conversation()
+                        st.rerun()
+
+                st.caption(f"🕐 {conv['created_at'].split('T')[0]}")
+
+    # 右侧：聊天区域
+    with col2:
+        conv = get_current_conversation()
+        if not conv:
+            st.info("没有选中的对话")
+            return
+
+        # 显示历史消息
+        if not conv["messages"]:
+            st.info("开始一个新的对话吧！有什么英语学习问题尽管问我。")
+        else:
+            for message in conv["messages"]:
+                with st.chat_message(message["role"]):
+                    st.write(message["content"])
+
+        # 聊天输入框
+        user_input = st.chat_input("输入你的问题...")
+
+        if user_input:
+            # 添加用户消息
+            add_message_to_conversation("user", user_input)
+
+            # 显示用户消息
+            with st.chat_message("user"):
+                st.write(user_input)
+
+            # 获取上下文
+            context = get_conversation_context()
+
+            # 调用 AI
             with st.chat_message("assistant"):
-                st.write_stream(st.session_state.ai_stream)
-            st.session_state.ai_answer_shown = True
+                with st.spinner("正在思考..."):
+                    response_stream = ask_ai_with_context(context)
+
+                    if response_stream:
+                        # 使用 st.write_stream 进行流式输出
+                        full_response = st.write_stream(response_stream)
+
+                        # 添加助手消息
+                        add_message_to_conversation("assistant", full_response)
+
+                        # AI 回答完成后，使用 rerun 刷新页面并滚动到底部
+                        st.rerun()
+                    else:
+                        st.error("抱歉，我遇到了一些问题，请稍后再试。")
 
 # 主函数
 def main():
     init_data_files()
-    
+
     # 侧边栏
     page = sidebar()
-    
-    # AI 助手对话框
-    ai_assistant_dialog()
-    
+
     # 主内容区域
     if page == "练习页":
         practice_page()
@@ -1342,6 +1494,8 @@ def main():
         weakness_page()
     elif page == "历史记录":
         history_page()
+    elif page == "AI 聊天":
+        ai_chat_page()
 
 if __name__ == "__main__":
     main()
