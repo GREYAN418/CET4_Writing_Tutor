@@ -1146,11 +1146,12 @@ def practice_page():
         if not st.session_state.submitted:
             st.subheader("✍️ 你的答案")
             user_answer = st.text_area(
-                "请输入你的答案：",
+                "",
                 value=st.session_state.user_answer,
                 height=150,
                 placeholder="在这里输入你的答案...",
-                key="user_answer_input"
+                key="user_answer_input",
+                label_visibility="collapsed"
             )
 
             # 统计英语单词数
