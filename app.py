@@ -51,12 +51,14 @@ st.markdown("""
 
     .material-icon {
         font-family: 'Material Icons';
-        font-size: 1.2em;
-        vertical-align: middle;
-        margin-right: 4px;
+        font-size: 18px;
+        vertical-align: text-bottom;
+        margin-right: 6px;
         color: inherit;
         display: inline-block;
         line-height: 1;
+        height: 18px;
+        width: 18px;
     }
 
     .material-icon-large {
@@ -201,16 +203,6 @@ st.markdown("""
         color: #2e5a3a !important;
     }
     [data-testid="stExpander"] div {
-        color: #2e5a3a !important;
-    }
-
-    /* 输入框样式 */
-    [data-testid="stTextArea"], [data-testid="stTextInput"] {
-        background: #ffffff !important;
-        color: #2e5a3a !important;
-        border: 1px solid #c8e6c9 !important;
-    }
-    [data-testid="stTextArea"] textarea, [data-testid="stTextInput"] input {
         color: #2e5a3a !important;
     }
 
