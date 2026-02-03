@@ -39,6 +39,36 @@ st.set_page_config(
     menu_items={}
 )
 
+# 引入 Material Icons 字体并定义样式
+st.markdown("""
+<style>
+    @font-face {
+        font-family: 'Material Icons';
+        font-style: normal;
+        font-weight: 400;
+        src: url(https://fonts.gstatic.com/s/materialicons/v140/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2');
+    }
+
+    .material-icon {
+        font-family: 'Material Icons';
+        font-size: 1.2em;
+        vertical-align: middle;
+        margin-right: 4px;
+        color: inherit;
+        display: inline-block;
+        line-height: 1;
+    }
+
+    .material-icon-large {
+        font-family: 'Material Icons';
+        font-size: 40px;
+        color: #66bb6a;
+        display: inline-block;
+        line-height: 1;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # 隐藏顶部菜单栏和界面元素（简洁模式）
 st.markdown("""
 <style>
@@ -791,7 +821,7 @@ def sidebar():
         st.markdown(
             f"""
             <div style='text-align: center; padding: 20px; background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.4) 100%); border-radius: 16px; backdrop-filter: blur(10px); margin-bottom: 20px; box-shadow: 0 4px 12px rgba(102, 187, 106, 0.15);'>
-                <h1 style='margin: 0; color: #66bb6a; font-size: 36px; font-family: Georgia, "Times New Roman", serif;'>✍️</h1>
+                <div class='material-icon-large'>edit_note</div>
                 <h2 style='margin: 8px 0 12px 0; font-size: 22px; color: #2e5a3a; font-weight: 600; font-family: Georgia, "Times New Roman", serif;'>CET4 微写作</h2>
                 <div style='border-top: 1px solid rgba(102, 187, 106, 0.3); padding-top: 12px;'>
                     <div style='font-family: Georgia, "Times New Roman", serif; font-size: 18px; color: #66bb6a; font-weight: normal; line-height: 1; margin-bottom: 4px;'>坚持 {persistence_days} 天</div>
@@ -805,7 +835,7 @@ def sidebar():
         st.markdown("---")
         
         # 页面导航 - 使用自定义样式
-        st.markdown("<h3 style='font-size: 14px; margin-bottom: 10px;'>📚 页面导航</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='font-size: 14px; margin-bottom: 10px;'><span class='material-icon'>menu_book</span>页面导航</h3>", unsafe_allow_html=True)
         
         # 获取当前页面
         if "current_page" not in st.session_state:
@@ -834,12 +864,12 @@ def sidebar():
         st.markdown("---")
         
         # 显示当前练习模式
-        st.markdown("<h3 style='font-size: 14px; margin-bottom: 10px;'>📅 今日信息</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='font-size: 14px; margin-bottom: 10px;'><span class='material-icon'>calendar_today</span>今日信息</h3>", unsafe_allow_html=True)
         today_mode = get_today_mode()
         st.info(f"**练习模式：** {today_mode}")
         
         st.markdown("---")
-        st.markdown("<h3 style='font-size: 14px; margin-bottom: 10px;'>📊 练习统计</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='font-size: 14px; margin-bottom: 10px;'><span class='material-icon'>bar_chart</span>练习统计</h3>", unsafe_allow_html=True)
         
         weakness_points = load_weakness_points()
         
