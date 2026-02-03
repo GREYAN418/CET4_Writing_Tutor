@@ -49,6 +49,150 @@ st.markdown("""
     [data-testid="stAppViewBlockContainer"] > div:nth-child(2) {
         display: none !important;
     }
+
+    /* 侧边栏 - 浅薄荷绿渐变 */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #e0f2f1 0%, #b2dfdb 100%) !important;
+        color: #2e5a3a !important;
+    }
+    [data-testid="stSidebar"] div, [data-testid="stSidebar"] span, [data-testid="stSidebar"] p, [data-testid="stSidebar"] label {
+        color: #2e5a3a !important;
+    }
+
+    /* 主内容区 - 极淡的晨雾绿渐变 */
+    [data-testid="stAppViewContainer"] {
+        background: linear-gradient(135deg, #f9fbe7 0%, #f1f8e9 50%, #e8f5e9 100%) !important;
+    }
+
+    /* 主内容区域文字颜色 - 柔和的深灰绿 */
+    [data-testid="stAppViewContainer"] .main,
+    [data-testid="stAppViewContainer"] div,
+    [data-testid="stAppViewContainer"] span,
+    [data-testid="stAppViewContainer"] p,
+    [data-testid="stAppViewContainer"] label {
+        color: #2e5a3a !important;
+    }
+
+    /* 标题颜色 - 保持普通颜色，不使用渐变文字效果 */
+    h1, h2, h3, h4, h5, h6 {
+        color: #2e5a3a !important;
+    }
+
+    /* 按钮样式 - 清新薄荷绿 */
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(135deg, #66bb6a 0%, #81c784 100%) !important;
+        border: none !important;
+        box-shadow: 0 4px 12px rgba(102, 187, 106, 0.25);
+        transition: all 0.3s ease;
+        color: #ffffff !important;
+    }
+    .stButton > button[kind="primary"]:hover {
+        background: linear-gradient(135deg, #81c784 0%, #a5d6a7 100%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(102, 187, 106, 0.35);
+        color: #ffffff !important;
+    }
+    .stButton > button {
+        color: #2e5a3a !important;
+        background: #ffffff !important;
+        border: 1px solid #66bb6a !important;
+    }
+    .stButton > button:hover {
+        color: #ffffff !important;
+        background: #66bb6a !important;
+    }
+
+    /* 信息框 - 清新主题 */
+    [data-testid="stInfo"], .stAlert[data-baseweb="toast"] {
+        background: #ffffff !important;
+        border-left: 4px solid #66bb6a !important;
+        color: #2e5a3a !important;
+        box-shadow: 0 2px 8px rgba(102, 187, 106, 0.1);
+    }
+    [data-testid="stInfo"] div, [data-testid="stInfo"] span, [data-testid="stInfo"] p {
+        color: #2e5a3a !important;
+    }
+    [data-testid="stSuccess"] {
+        background: #e8f5e9 !important;
+        border-left: 4px solid #81c784 !important;
+        color: #2e5a3a !important;
+    }
+    [data-testid="stSuccess"] div, [data-testid="stSuccess"] span, [data-testid="stSuccess"] p {
+        color: #2e5a3a !important;
+    }
+    [data-testid="stWarning"] {
+        background: #fff8e1 !important;
+        border-left: 4px solid #ffd54f !important;
+        color: #8d6e63 !important;
+    }
+    [data-testid="stWarning"] div, [data-testid="stWarning"] span, [data-testid="stWarning"] p {
+        color: #8d6e63 !important;
+    }
+    [data-testid="stError"] {
+        background: #ffebee !important;
+        border-left: 4px solid #e57373 !important;
+        color: #c62828 !important;
+    }
+    [data-testid="stError"] div, [data-testid="stError"] span, [data-testid="stError"] p {
+        color: #c62828 !important;
+    }
+
+    /* 统计卡片 - 薄荷绿主题 */
+    [data-testid="stMetricValue"] {
+        color: #66bb6a !important;
+        font-weight: 700 !important;
+    }
+    [data-testid="stMetricLabel"] {
+        color: #2e5a3a !important;
+    }
+
+    /* 侧边栏导航按钮 - 浅色背景 */
+    [data-testid="stSidebar"] .stButton > button {
+        color: #2e5a3a !important;
+        text-align: left !important;
+        background: rgba(255, 255, 255, 0.5) !important;
+        border: 1px solid rgba(102, 187, 106, 0.3) !important;
+    }
+    [data-testid="stSidebar"] .stButton > button:hover {
+        color: #ffffff !important;
+        background: #66bb6a !important;
+    }
+    [data-testid="stSidebar"] .stButton > button[kind="primary"] {
+        background: linear-gradient(135deg, #66bb6a 0%, #81c784 100%) !important;
+        border: none !important;
+        color: #ffffff !important;
+    }
+    [data-testid="stSidebar"] .stButton > button[kind="primary"]:hover {
+        background: linear-gradient(135deg, #81c784 0%, #a5d6a7 100%) !important;
+    }
+
+    /* expander 折叠框样式 */
+    .streamlit-expanderHeader {
+        color: #2e5a3a !important;
+    }
+    [data-testid="stExpander"] div {
+        color: #2e5a3a !important;
+    }
+
+    /* 输入框样式 */
+    [data-testid="stTextArea"], [data-testid="stTextInput"] {
+        background: #ffffff !important;
+        color: #2e5a3a !important;
+        border: 1px solid #c8e6c9 !important;
+    }
+    [data-testid="stTextArea"] textarea, [data-testid="stTextInput"] input {
+        color: #2e5a3a !important;
+    }
+
+    /* caption 文字颜色 */
+    .stCaption {
+        color: #66bb6a !important;
+    }
+
+    /* info 框内文字颜色 */
+    .stInfo {
+        color: #2e5a3a !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -638,9 +782,9 @@ def sidebar():
         # 标题
         st.markdown(
             """
-            <div style='text-align: center; padding: 10px 0 5px 0;'>
-                <h1 style='margin: 0; color: #1f77b4; font-size: 32px;'>✍️</h1>
-                <h2 style='margin: 5px 0 0 0; font-size: 20px;'>CET4 微写作</h2>
+            <div style='text-align: center; padding: 20px; background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.4) 100%); border-radius: 16px; backdrop-filter: blur(10px); margin-bottom: 20px; box-shadow: 0 4px 12px rgba(102, 187, 106, 0.15);'>
+                <h1 style='margin: 0; color: #66bb6a; font-size: 36px;'>✍️</h1>
+                <h2 style='margin: 8px 0 0 0; font-size: 22px; color: #2e5a3a; font-weight: 600; font-family: Georgia, "Times New Roman", serif;'>CET4 微写作</h2>
             </div>
             """,
             unsafe_allow_html=True
