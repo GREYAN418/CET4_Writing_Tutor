@@ -140,7 +140,7 @@ st.markdown("""
     /* 统计卡片 - 薄荷绿主题 */
     [data-testid="stMetricValue"] {
         color: #66bb6a !important;
-        font-weight: 700 !important;
+        font-weight: normal !important;
     }
     [data-testid="stMetricLabel"] {
         color: #2e5a3a !important;
@@ -779,12 +779,24 @@ def ask_ai_assistant(question: str):
 # 侧边栏
 def sidebar():
     with st.sidebar:
+        # 计算坚持天数
+        history = load_history()
+        persistence_days = 0
+        if history:
+            dates = [h.get("timestamp", "").split("T")[0] for h in history if h.get("timestamp")]
+            unique_dates = set(dates)
+            persistence_days = len(unique_dates)
+        
         # 标题
         st.markdown(
-            """
+            f"""
             <div style='text-align: center; padding: 20px; background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.4) 100%); border-radius: 16px; backdrop-filter: blur(10px); margin-bottom: 20px; box-shadow: 0 4px 12px rgba(102, 187, 106, 0.15);'>
-                <h1 style='margin: 0; color: #66bb6a; font-size: 36px;'>✍️</h1>
-                <h2 style='margin: 8px 0 0 0; font-size: 22px; color: #2e5a3a; font-weight: 600; font-family: Georgia, "Times New Roman", serif;'>CET4 微写作</h2>
+                <h1 style='margin: 0; color: #66bb6a; font-size: 36px; font-family: Georgia, "Times New Roman", serif;'>✍️</h1>
+                <h2 style='margin: 8px 0 12px 0; font-size: 22px; color: #2e5a3a; font-weight: 600; font-family: Georgia, "Times New Roman", serif;'>CET4 微写作</h2>
+                <div style='border-top: 1px solid rgba(102, 187, 106, 0.3); padding-top: 12px;'>
+                    <div style='font-family: Georgia, "Times New Roman", serif; font-size: 18px; color: #66bb6a; font-weight: normal; line-height: 1; margin-bottom: 4px;'>坚持 {persistence_days} 天</div>
+                    <div style='font-size: 10px; color: #2e5a3a; letter-spacing: 1px;'>KEEP LEARNING</div>
+                </div>
             </div>
             """,
             unsafe_allow_html=True
@@ -802,7 +814,7 @@ def sidebar():
         page = st.session_state.current_page
         
         # 自定义导航按钮 - 竖向排版
-        if st.button("练习页", icon=":material/edit_note:", use_container_width=True, key="nav_practice"):
+        if st.button("今日练习", icon=":material/edit_note:", use_container_width=True, key="nav_practice"):
             st.session_state.current_page = "练习页"
             st.rerun()
 
@@ -826,10 +838,9 @@ def sidebar():
         today_mode = get_today_mode()
         st.info(f"**练习模式：** {today_mode}")
         
+        st.markdown("---")
         st.markdown("<h3 style='font-size: 14px; margin-bottom: 10px;'>📊 练习统计</h3>", unsafe_allow_html=True)
         
-        # 显示练习统计
-        history = load_history()
         weakness_points = load_weakness_points()
         
         col1, col2 = st.columns(2)
@@ -1306,7 +1317,7 @@ def weakness_page():
 
     # 筛选功能
     st.markdown("---")
-    st.subheader("📝 薄弱点详情")
+    st.markdown("📝 薄弱点详情")
 
     # 获取所有类型
     all_types = list(type_counts.keys())
@@ -1416,7 +1427,7 @@ def history_page():
                     details = evaluation.get("details", [])
                     if details:
                         st.markdown("---")
-                        st.subheader("🔍 薄弱点详情")
+                        st.markdown("🔍 薄弱点详情")
                         for detail in details:
                             original = detail.get("original_sentence", "")
                             correction = detail.get("correction", "")
