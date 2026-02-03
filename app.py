@@ -373,17 +373,17 @@ def generate_question(mode: str, weakness_points: List[Dict] = None) -> Dict:
         
         "Word Upgrading": f"""请生成一个CET4水平的词汇升级题目。每次生成必须完全不同，不要重复之前的题目。
 要求：
-1. 给出一个基础词汇（如 good, bad, think 等）
-2. 要求用户写出更高级的同义替换词
-3. 适合CET4写作提升
-4. 每次选择不同的基础词汇
-5. 建议作答时间：3-5分钟
+1. 给出一个词汇简单、表达普通的句子（10-20词）
+2. 句子中包含可以升级的基础词汇（如 good, bad, think, happy, sad, say, ask 等）
+3. 要求用户用更高级的词汇替换句子中的基础词汇，提升句子表达质量
+4. 适合CET4写作提升
+5. 每次选择不同的句子场景和可升级词汇
+6. 建议作答时间：3-5分钟
 
 返回JSON格式：
 {{
-    "basic_word": "基础词汇",
-    "word_meaning": "词义",
-    "hint": "提示信息（如词性、语境等）"
+    "basic_sentence": "包含基础词汇的句子",
+    "hint": "提示信息（指出哪些词汇可以升级，如"good可以升级为excellent/great/superb"）"
 }}""",
 
         "Logic Linking": f"""请生成一个CET4水平的逻辑连接题目。每次生成必须完全不同，不要重复之前的题目。
@@ -538,29 +538,29 @@ def evaluate_answer(mode: str, question: Dict, user_answer: str, record_id: str 
 
         "Word Upgrading": f"""请批改以下词汇升级题目。
 
-基础词汇：{question.get('basic_word', '')}
-词义：{question.get('word_meaning', '')}
-用户答案：{user_answer}
+基础句子：{question.get('basic_sentence', '')}
+提示：{question.get('hint', '')}
+用户升级后的句子：{user_answer}
 
-你是我同桌，用轻松亲切的中文口吻批改，多鼓励。给出更多高级同义词和使用示例。
-如果用户答案中的词汇使用可以改进，请在 details 中列出，包含：
+你是我同桌，用轻松亲切的中文口吻批改，多鼓励。给出升级建议和高分表达。
+如果用户升级后的句子中有可以改进的地方，请在 details 中列出，包含：
 - type: 错误类型标签，严格按照以下规则分类：
   * "注意"：语法错误（时态、主谓一致、冠词、介词等）或单词错误（拼写错误、用词错误、词汇选择不当等）
   * "建议"：语法和单词都正确，仅仅是表达不够流畅、不够优美或可以更地道
   * "其他"：不属于以上两种情况的问题
-- original_sentence: 用户使用的词汇（保持原样）
-- correction: 更好的词汇选择和解释，英文部分必须用英文表达
+- original_sentence: 用户句子中可以改进的部分（保持原样）
+- correction: 更好的表达建议，英文部分必须用英文表达
 
 返回JSON格式：
 {{
     "summary": "整体评价（中文）",
-    "suggested_words": ["高级词1", "高级词2"],
-    "high_score_expression": "使用示例（英文）",
+    "reference_sentence": "参考升级句子（英文）",
+    "high_score_expression": "高分表达示例（英文）",
     "details": [
         {{
             "type": "注意/建议/其他",
-            "original_sentence": "用户使用的词汇",
-            "correction": "更好的词汇选择和解释（英文部分用英文）"
+            "original_sentence": "用户句子中可以改进的部分",
+            "correction": "更好的表达建议（英文部分用英文）"
         }}
     ]
 }}""",
@@ -924,9 +924,7 @@ def practice_page():
                 if question.get('key_words'):
                     st.caption(f"🔑 重点词汇：{', '.join(question.get('key_words', []))}")
             elif mode == "Word Upgrading":
-                st.info(f"**基础词汇：** {question.get('basic_word', '')}")
-                if question.get('word_meaning'):
-                    st.caption(f"📖 词义：{question.get('word_meaning', '')}")
+                st.info(f"**基础句子：** {question.get('basic_sentence', '')}")
                 if question.get('hint'):
                     st.caption(f"💡 提示：{question.get('hint', '')}")
             elif mode == "Logic Linking":
@@ -978,9 +976,9 @@ def practice_page():
                 if "high_score_expression" in evaluation:
                     st.warning(f"⭐ **高分表达：** {evaluation['high_score_expression']}")
 
-                # 建议词汇
-                if "suggested_words" in evaluation:
-                    st.warning(f"📚 **建议词汇：** {', '.join(evaluation['suggested_words'])}")
+                # 参考升级句子
+                if "reference_sentence" in evaluation:
+                    st.warning(f"📚 **参考升级句子：** {evaluation['reference_sentence']}")
 
                 # 建议论点
                 if "suggested_points" in evaluation:
@@ -1099,8 +1097,7 @@ def practice_page():
             st.caption(f"📝 建议字数：15-25词")
         
         elif mode == "Word Upgrading":
-            st.info(f"**基础词汇：** {q.get('basic_word', '')}")
-            st.caption(f"📖 词义：{q.get('word_meaning', '')}")
+            st.info(f"**基础句子：** {q.get('basic_sentence', '')}")
             st.caption(f"💡 提示：{q.get('hint', '')}")
             st.caption(f"⏱️ 建议作答时间：3-5分钟")
         
@@ -1220,9 +1217,9 @@ def practice_page():
             if "high_score_expression" in eval_result:
                 st.warning(f"⭐ **高分表达：** {eval_result['high_score_expression']}")
 
-            # 建议词汇
-            if "suggested_words" in eval_result:
-                st.warning(f"📚 **建议词汇：** {', '.join(eval_result['suggested_words'])}")
+            # 参考升级句子
+            if "reference_sentence" in eval_result:
+                st.warning(f"📚 **参考升级句子：** {eval_result['reference_sentence']}")
 
             # 建议论点
             if "suggested_points" in eval_result:
