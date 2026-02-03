@@ -1,4 +1,4 @@
-<img width="3072" height="1920" alt="屏幕截图(33)" src="https://github.com/user-attachments/assets/d107c39a-0b4d-4a2b-98f6-a48b0b81de5d" /><img width="3072" height="1920" alt="屏幕截图(33)" src="https://github.com/user-attachments/assets/d107c39a-0b4d-4a2b-98f6-a48b0b81de5d" /># CET4_Writing_Tutor
+# CET4_Writing_Tutor
 #四级作文练习工具   
 完全由AI驱动，一周七天对应七种题型，尽量保持新鲜感。此外还有AI批改，智能薄弱点总结统计，也可以随时向AI提问。  
 个人自用，大概也不会有其他人看到。  
