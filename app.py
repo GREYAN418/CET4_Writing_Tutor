@@ -616,18 +616,19 @@ def evaluate_answer(mode: str, question: Dict, user_answer: str, record_id: str 
         return None
 
 # AI 助手对话
-def ask_ai_assistant(question: str) -> str:
+def ask_ai_assistant(question: str):
     try:
         response = client.chat.completions.create(
             model="qwen-max",
             messages=[
-                {"role": "system", "content": "你是一个友好的英语学习助手，专门帮助CET4学生解答英语学习问题（非作文批改类）。请用简洁、鼓励的语气回答。"},
+                {"role": "system", "content": "你是我的英语学习搭子！我们都是四级备考的战友。请用轻松、口语化的中文跟我交流，就像朋友聊天一样。回答问题时：1）不要追求简洁，可以详细展开讲；2）结合四级备考的背景，补充相关的考点、高频词汇、易错点等；3）多用例子和场景帮助理解；4）鼓励我，给我实用的学习建议。记住：我们是朋友，不是师生！"},
                 {"role": "user", "content": question}
             ],
-            temperature=0.7,
-            max_tokens=500
+            temperature=0.8,
+            max_tokens=2000,
+            stream=True
         )
-        return response.choices[0].message.content
+        return response
     except Exception as e:
         return f"抱歉，我遇到了一些问题：{str(e)}"
 
@@ -1292,9 +1293,9 @@ def history_page():
 def ai_assistant_dialog():
     if st.session_state.get("show_ai_dialog", False):
         st.markdown("---")
-        st.subheader("🤖 AI 助手")
+        st.subheader("🤖 学习搭子")
         
-        st.write("有什么英语学习问题吗？我可以帮你解答（非作文批改类）")
+        st.write("嘿！有什么英语学习问题尽管问我，我们一起攻克四级！")
         
         question = st.text_area(
             "请输入你的问题：",
@@ -1307,21 +1308,22 @@ def ai_assistant_dialog():
         with col1:
             if st.button("发送", type="primary", key="ai_send"):
                 if question.strip():
-                    with st.spinner("思考中..."):
-                        answer = ask_ai_assistant(question)
-                    st.session_state.ai_answer = answer
+                    st.session_state.ai_stream = ask_ai_assistant(question)
+                    st.session_state.ai_answer_shown = False
                 else:
                     st.warning("请输入问题！")
         
         with col2:
             if st.button("关闭", key="ai_close"):
                 st.session_state.show_ai_dialog = False
-                st.session_state.ai_answer = None
+                st.session_state.ai_answer_shown = False
                 st.rerun()
         
-        # 显示 AI 回答
-        if st.session_state.get("ai_answer"):
-            st.success(st.session_state.ai_answer)
+        # 显示 AI 回答（流式输出）
+        if st.session_state.get("ai_stream") and not st.session_state.get("ai_answer_shown", False):
+            with st.chat_message("assistant"):
+                st.write_stream(st.session_state.ai_stream)
+            st.session_state.ai_answer_shown = True
 
 # 主函数
 def main():
