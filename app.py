@@ -636,27 +636,32 @@ def evaluate_answer(mode: str, question: Dict, user_answer: str, record_id: str 
 
 原句（包含错误）：{question.get('question', '')}
 错误类型：{question.get('error_type', '')}
-用户答案：{user_answer}
+用户改写后的答案：{user_answer}
 
-你是我同桌，用轻松亲切的中文口吻批改，多鼓励。给出正确答案和高分表达。
-如果用户答案中有错误，请在 details 中列出每个错误，包含：
+你是我同桌，用轻松亲切的中文口吻批改，多鼓励。请判断用户是否正确改出了原句中的错误。给出正确答案和高分表达。
+
+重要提示：你需要对比用户改写后的答案和正确的改写答案，判断用户的改写是否完全正确。
+
+如果用户改写后仍然有错误（没有完全改对，或者改写时引入了新的错误），请在 details 中列出每个问题，包含：
 - type: 错误类型标签，严格按照以下规则分类：
-  * "注意"：语法错误（时态、主谓一致、冠词、介词等）或单词错误（拼写错误、用词错误、词汇选择不当等）
-  * "建议"：语法和单词都正确，仅仅是表达不够流畅、不够优美或可以更地道
+  * "注意"：语法错误（时态、主谓一致、冠词、介词等）或单词错误（拼写错误、用词错误、词汇选择不当等）。这是四级作文一定会扣分的错误，必须改。
+  * "建议"：语法和单词都正确，仅仅是表达不够流畅、不够优美或可以更地道。不改也没问题，但改了会更好。
   * "其他"：不属于以上两种情况的问题
-- original_sentence: 用户有问题的原句片段（保持原样）
-- correction: 修改建议，英文部分必须用英文表达，中文部分用中文表达
+- original_sentence: 用户改写后仍然错误或可以改进的部分（保持原样）
+- correction: 正确的改法或更好的表达，英文部分必须用英文表达，中文部分用中文表达
+
+如果用户完全改对了，details 可以为空列表。
 
 返回JSON格式：
 {{
-    "summary": "整体评价（中文）",
+    "summary": "整体评价（中文），说明用户是否正确改出了错误",
     "correct_answer": "正确答案（英文）",
     "high_score_expression": "高分表达（英文）",
     "details": [
         {{
             "type": "注意/建议/其他",
-            "original_sentence": "用户有问题的原句片段",
-            "correction": "修改建议（英文部分用英文，中文部分用中文）"
+            "original_sentence": "用户改写后仍然错误或可以改进的部分",
+            "correction": "正确的改法或更好的表达（英文部分用英文，中文部分用中文）"
         }}
     ]
 }}""",
@@ -1159,10 +1164,14 @@ def practice_page():
                 if st.button("提交答案", type="primary", use_container_width=True):
                     if user_answer.strip():
                         with st.spinner("正在批改..."):
+                            # 先生成 record_id，确保薄弱点能正确关联
+                            temp_record_id = f"{datetime.now().timestamp()}"
+
                             st.session_state.evaluation = evaluate_answer(
                                 mode,
                                 st.session_state.question,
-                                user_answer
+                                user_answer,
+                                record_id=temp_record_id
                             )
                             st.session_state.submitted = True
 
