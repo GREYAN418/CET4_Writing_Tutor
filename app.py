@@ -74,12 +74,13 @@ st.markdown("""
 # 隐藏顶部菜单栏和界面元素（简洁模式）
 st.markdown("""
 <style>
+    /* 顶栏 - 设置与主背景一致的渐变色，使其与背景融为一体 */
     [data-testid="stHeader"] {
-        display: none !important;
+        background: linear-gradient(135deg, #f9fbe7 0%, #f1f8e9 50%, #e8f5e9 100%) !important;
+        color: #2e5a3a !important;
     }
-    /* 隐藏右上角菜单 */
-    [data-testid="stAppViewBlockContainer"] > div:nth-child(2) {
-        display: none !important;
+    [data-testid="stHeader"] div, [data-testid="stHeader"] span, [data-testid="stHeader"] p, [data-testid="stHeader"] label {
+        color: #2e5a3a !important;
     }
 
     /* 侧边栏 - 浅薄荷绿渐变 */
@@ -175,7 +176,7 @@ st.markdown("""
         font-weight: normal !important;
     }
     [data-testid="stMetricLabel"] {
-        color: #2e5a3a !important;
+        color: #5a8f62 !important;
     }
 
     /* 侧边栏导航按钮 - 浅色背景 */
@@ -215,18 +216,28 @@ st.markdown("""
     .stInfo {
         color: #2e5a3a !important;
     }
+
+    /* multiselect 筛选器标签 - 与侧边栏同款浅绿 */
+    [data-testid="stMultiSelect"] span[data-baseweb="tag"] {
+        background: #ECF6F5 !important;
+        border: 1px solid rgba(102, 187, 106, 0.3) !important;
+        color: #2e5a3a !important;
+    }
+    [data-testid="stMultiSelect"] span[data-baseweb="tag"] span {
+        color: #2e5a3a !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # 7 种微写作模式
 WRITING_MODES = {
-    0: "Sentence Correction",  # 周一
-    1: "Translation",          # 周二
-    2: "Word Upgrading",       # 周三
-    3: "Logic Linking",        # 周四
-    4: "Sentence Combining",   # 周五
-    5: "Paraphrasing",         # 周六
-    6: "Brainstorming"         # 周日
+    0: "Phrase Practice",      # 周一 - 短语造句
+    1: "Translation",          # 周二 - 翻译
+    2: "Transition Practice",  # 周三 - 过渡练习
+    3: "Sentence Structure",   # 周四 - 句式练习
+    4: "Sentence Variety",     # 周五 - 句式多样性
+    5: "Sentence Correction",  # 周六 - 句子改错
+    6: "Paraphrasing"          # 周日 - 改写
 }
 
 # 初始化数据库表（兼容本地文件系统）
@@ -340,19 +351,19 @@ def get_today_mode() -> str:
 # 生成题目
 def generate_question(mode: str, weakness_points: List[Dict] = None) -> Dict:
     mode_prompts = {
-        "Sentence Correction": f"""请生成一个CET4水平的病句题目。每次生成必须完全不同，不要重复之前的题目。
+        "Phrase Practice": f"""请生成一个CET4水平的短语造句题目。每次生成必须完全不同，不要重复之前的题目。
 要求：
-1. 句子长度15-25词
-2. 包含常见的语法错误（如时态、主谓一致、冠词、介词等）
-3. 错误要隐蔽但有迹可循
-4. 内容要多样化，涵盖学习、生活、工作等不同场景
+1. 给出1-2个CET4写作常用短语或搭配（如：in addition、as a result、pay attention to等）
+2. 要求学生用给定的短语造句
+3. 短语场景要多样化，涵盖学习、生活、工作、环境等不同主题
+4. 每次选择不同的短语
 5. 建议作答时间：3-5分钟
+6. 造句约10-20词
 
 返回JSON格式：
 {{
-    "question": "包含错误的句子",
-    "error_type": "错误类型",
-    "hint": "提示信息（不直接给出答案）"
+    "phrases": ["短语1", "短语2（可选）"],
+    "hint": "提示信息（可以给一个造句场景或主题建议）"
 }}""",
 
         "Translation": f"""请生成一个CET4水平的英译中题目。每次生成必须完全不同，不要重复之前的题目。
@@ -370,51 +381,67 @@ def generate_question(mode: str, weakness_points: List[Dict] = None) -> Dict:
     "key_words": ["重点词1", "重点词2"],
     "hint": "提示信息"
 }}""",
-        
-        "Word Upgrading": f"""请生成一个CET4水平的词汇升级题目。每次生成必须完全不同，不要重复之前的题目。
+
+        "Transition Practice": f"""请生成一个CET4水平的过渡练习题目。每次生成必须完全不同，不要重复之前的题目。
 要求：
-1. 给出一个词汇简单、表达普通的句子（10-20词）
-2. 句子中包含可以升级的基础词汇（如 good, bad, think, happy, sad, say, ask 等）
-3. 要求用户用更高级的词汇替换句子中的基础词汇，提升句子表达质量
-4. 适合CET4写作提升
-5. 每次选择不同的句子场景和可升级词汇
-6. 建议作答时间：3-5分钟
+1. 给出两个独立的句子片段或观点
+2. 要求学生用合适的过渡词/过渡句连接起来
+3. 过渡词要多样化（如：however、therefore、in addition、on the other hand等）
+4. 场景要多样化，不要重复
+5. 建议作答时间：3-5分钟
+6. 连接后约20-30词
 
 返回JSON格式：
 {{
-    "basic_sentence": "包含基础词汇的句子",
-    "hint": "提示信息（指出哪些词汇可以升级，如"good可以升级为excellent/great/superb"）"
+    "part1": "第一部分句子",
+    "part2": "第二部分句子",
+    "hint": "提示可能的过渡词类型"
 }}""",
 
-        "Logic Linking": f"""请生成一个CET4水平的逻辑连接题目。每次生成必须完全不同，不要重复之前的题目。
+        "Sentence Structure": f"""请生成一个CET4水平的句式练习题目。每次生成必须完全不同，不要重复之前的题目。
 要求：
-1. 给出两个相关的简单句
-2. 要求用户用合适的连接词合并
-3. 句子内容贴近学生生活
-4. 场景要多样化，不要重复
-5. 建议作答时间：5-8分钟
+1. 给出一个常用句型结构（如：It is...that...、There is no doubt that...、Not only...but also...、It is universally acknowledged that...等）
+2. 要求学生用这个句型造句
+3. 句型要多样化，每次选择不同的句型
+4. 建议作答时间：3-5分钟
+5. 造句约15-25词
 
 返回JSON格式：
 {{
-    "sentence1": "句子1",
-    "sentence2": "句子2",
-    "hint": "提示可能的连接词类型"
+    "structure": "句型结构",
+    "structure_example": "句型示例（可选）",
+    "hint": "提示信息（可以给一个造句主题）"
 }}""",
 
-        "Sentence Combining": f"""请生成一个CET4水平的句子合并题目。每次生成必须完全不同，不要重复之前的题目。
+        "Sentence Variety": f"""请生成一个CET4水平的句式多样性题目。每次生成必须完全不同，不要重复之前的题目。
 要求：
-1. 给出2-3个简单短句
-2. 要求学生合并成一个复合句
-3. 包含定语从句、状语从句等CET4句型
-4. 场景要多样化，不要重复
-5. 建议作答时间：5-8分钟
-6. 合并后句子约20-30词
+1. 给出一个普通句型
+2. 要求学生改写成特定句型（如：倒装句、强调句、被动语态、虚拟语气等）
+3. 句型转换类型要多样化
+4. 内容场景要多样化
+5. 建议作答时间：5-7分钟
+6. 改写后句子约15-25词
 
 返回JSON格式：
 {{
-    "sentences": ["句子1", "句子2", "句子3（可选）"],
-    "target_structure": "目标句型（如定语从句）",
+    "original_sentence": "原句",
+    "target_type": "目标句型（如倒装句/强调句/被动语态等）",
     "hint": "提示信息"
+}}""",
+
+        "Sentence Correction": f"""请生成一个CET4水平的病句题目。每次生成必须完全不同，不要重复之前的题目。
+要求：
+1. 句子长度15-25词
+2. 包含常见的语法错误（如时态、主谓一致、冠词、介词等）
+3. 错误要隐蔽但有迹可循
+4. 内容要多样化，涵盖学习、生活、工作等不同场景
+5. 建议作答时间：3-5分钟
+
+返回JSON格式：
+{{
+    "question": "包含错误的句子",
+    "error_type": "错误类型",
+    "hint": "提示信息（不直接给出答案）"
 }}""",
 
         "Paraphrasing": f"""请生成一个CET4水平的改写题目。每次生成必须完全不同，不要重复之前的题目。
@@ -430,22 +457,6 @@ def generate_question(mode: str, weakness_points: List[Dict] = None) -> Dict:
 {{
     "original_sentence": "原句",
     "hint": "提示信息（如可以使用的同义词或句型）"
-}}""",
-
-        "Brainstorming": f"""请生成一个CET4水平的头脑风暴题目。每次生成必须完全不同，不要重复之前的题目。
-要求：
-1. 给出一个常见的话题（如环保、学习、健康等）
-2. 要求学生列出3个相关论点
-3. 适合写作练习
-4. 话题要多样化，不要重复
-5. 建议作答时间：8-10分钟
-6. 每个论点约10-20词，总共约30-60词
-
-返回JSON格式：
-{{
-    "topic": "话题",
-    "topic_background": "话题背景说明",
-    "hint": "提示可能的思考角度"
 }}"""
     }    
     prompt = mode_prompts.get(mode, mode_prompts["Sentence Correction"])
@@ -478,31 +489,30 @@ def generate_question(mode: str, weakness_points: List[Dict] = None) -> Dict:
 # 批改用户答案
 def evaluate_answer(mode: str, question: Dict, user_answer: str, record_id: str = None, auto_save_weakness: bool = True) -> Dict:
     mode_prompts = {
-        "Sentence Correction": f"""请批改以下句子改写题目。
+        "Phrase Practice": f"""请批改以下短语造句题目。
 
-原句（包含错误）：{question.get('question', '')}
-错误类型：{question.get('error_type', '')}
-用户答案：{user_answer}
+短语：{', '.join(question.get('phrases', []))}
+用户造句：{user_answer}
 
-你是我同桌，用轻松亲切的中文口吻批改，多鼓励。给出正确答案和高分表达。
-如果用户答案中有错误，请在 details 中列出每个错误，包含：
+你是我同桌，用轻松亲切的中文口吻批改，多鼓励。给出参考造句和更多示例。
+如果用户造句中有错误或可以改进的地方，请在 details 中列出，包含：
 - type: 错误类型标签，严格按照以下规则分类：
   * "注意"：语法错误（时态、主谓一致、冠词、介词等）或单词错误（拼写错误、用词错误、词汇选择不当等）
   * "建议"：语法和单词都正确，仅仅是表达不够流畅、不够优美或可以更地道
   * "其他"：不属于以上两种情况的问题
-- original_sentence: 用户有问题的原句片段（保持原样）
-- correction: 修改建议，英文部分必须用英文表达，中文部分用中文表达
+- original_sentence: 用户句子中可以改进的部分（保持原样）
+- correction: 更好的表达建议，英文部分必须用英文表达
 
 返回JSON格式：
 {{
     "summary": "整体评价（中文）",
-    "correct_answer": "正确答案（英文）",
-    "high_score_expression": "高分表达（英文）",
+    "reference_sentence": "参考造句（英文）",
+    "high_score_expression": "更多示例（英文）",
     "details": [
         {{
             "type": "注意/建议/其他",
-            "original_sentence": "用户有问题的原句片段",
-            "correction": "修改建议（英文部分用英文，中文部分用中文）"
+            "original_sentence": "用户句子中可以改进的部分",
+            "correction": "更好的表达建议（英文部分用英文）"
         }}
     ]
 }}""",
@@ -536,14 +546,42 @@ def evaluate_answer(mode: str, question: Dict, user_answer: str, record_id: str 
     ]
 }}""",
 
-        "Word Upgrading": f"""请批改以下词汇升级题目。
+        "Transition Practice": f"""请批改以下过渡练习题目。
 
-基础句子：{question.get('basic_sentence', '')}
-提示：{question.get('hint', '')}
-用户升级后的句子：{user_answer}
+第一部分：{question.get('part1', '')}
+第二部分：{question.get('part2', '')}
+用户答案：{user_answer}
 
-你是我同桌，用轻松亲切的中文口吻批改，多鼓励。给出升级建议和高分表达。
-如果用户升级后的句子中有可以改进的地方，请在 details 中列出，包含：
+你是我同桌，用轻松亲切的中文口吻批改，多鼓励。给出参考答案和更多过渡词选择。
+如果用户答案中的过渡词使用可以改进，请在 details 中列出，包含：
+- type: 错误类型标签，严格按照以下规则分类：
+  * "注意"：语法错误（时态、主谓一致、冠词、介词等）或单词错误（拼写错误、用词错误、词汇选择不当等）
+  * "建议"：语法和单词都正确，仅仅是表达不够流畅、不够优美或可以更地道
+  * "其他"：不属于以上两种情况的问题
+- original_sentence: 用户的原句（保持原样）
+- correction: 更好的过渡词选择和解释，英文部分必须用英文表达
+
+返回JSON格式：
+{{
+    "summary": "整体评价（中文）",
+    "reference_answer": "参考答案（英文）",
+    "high_score_expression": "更多过渡词（英文）",
+    "details": [
+        {{
+            "type": "注意/建议/其他",
+            "original_sentence": "用户的原句",
+            "correction": "更好的过渡词选择和解释（英文部分用英文）"
+        }}
+    ]
+}}""",
+
+        "Sentence Structure": f"""请批改以下句式练习题目。
+
+句型结构：{question.get('structure', '')}
+用户造句：{user_answer}
+
+你是我同桌，用轻松亲切的中文口吻批改，多鼓励。给出参考造句和更多示例。
+如果用户造句中有错误或可以改进的地方，请在 details 中列出，包含：
 - type: 错误类型标签，严格按照以下规则分类：
   * "注意"：语法错误（时态、主谓一致、冠词、介词等）或单词错误（拼写错误、用词错误、词汇选择不当等）
   * "建议"：语法和单词都正确，仅仅是表达不够流畅、不够优美或可以更地道
@@ -554,8 +592,8 @@ def evaluate_answer(mode: str, question: Dict, user_answer: str, record_id: str 
 返回JSON格式：
 {{
     "summary": "整体评价（中文）",
-    "reference_sentence": "参考升级句子（英文）",
-    "high_score_expression": "高分表达示例（英文）",
+    "reference_sentence": "参考造句（英文）",
+    "high_score_expression": "更多示例（英文）",
     "details": [
         {{
             "type": "注意/建议/其他",
@@ -565,49 +603,20 @@ def evaluate_answer(mode: str, question: Dict, user_answer: str, record_id: str 
     ]
 }}""",
 
-        "Logic Linking": f"""请批改以下逻辑连接题目。
+        "Sentence Variety": f"""请批改以下句式多样性题目。
 
-句子1：{question.get('sentence1', '')}
-句子2：{question.get('sentence2', '')}
+原句：{question.get('original_sentence', '')}
+目标句型：{question.get('target_type', '')}
 用户答案：{user_answer}
 
-你是我同桌，用轻松亲切的中文口吻批改，多鼓励。给出参考答案和更多连接词选择。
-如果用户答案中的连接词使用可以改进，请在 details 中列出，包含：
+你是我同桌，用轻松亲切的中文口吻批改，多鼓励。给出参考答案和其他转换方式。
+如果用户答案中的句式转换可以改进，请在 details 中列出，包含：
 - type: 错误类型标签，严格按照以下规则分类：
   * "注意"：语法错误（时态、主谓一致、冠词、介词等）或单词错误（拼写错误、用词错误、词汇选择不当等）
   * "建议"：语法和单词都正确，仅仅是表达不够流畅、不够优美或可以更地道
   * "其他"：不属于以上两种情况的问题
 - original_sentence: 用户的原句（保持原样）
-- correction: 更好的连接词选择和解释，英文部分必须用英文表达
-
-返回JSON格式：
-{{
-    "summary": "整体评价（中文）",
-    "reference_answer": "参考答案（英文）",
-    "high_score_expression": "更多连接词（英文）",
-    "details": [
-        {{
-            "type": "注意/建议/其他",
-            "original_sentence": "用户的原句",
-            "correction": "更好的连接词选择和解释（英文部分用英文）"
-        }}
-    ]
-}}""",
-
-        "Sentence Combining": f"""请批改以下句子合并题目。
-
-原句：{', '.join(question.get('sentences', []))}
-目标句型：{question.get('target_structure', '')}
-用户答案：{user_answer}
-
-你是我同桌，用轻松亲切的中文口吻批改，多鼓励。给出参考答案和其他合并方式。
-如果用户答案中的句子合并可以改进，请在 details 中列出，包含：
-- type: 错误类型标签，严格按照以下规则分类：
-  * "注意"：语法错误（时态、主谓一致、冠词、介词等）或单词错误（拼写错误、用词错误、词汇选择不当等）
-  * "建议"：语法和单词都正确，仅仅是表达不够流畅、不够优美或可以更地道
-  * "其他"：不属于以上两种情况的问题
-- original_sentence: 用户的原句（保持原样）
-- correction: 更好的合并方式和解释，英文部分必须用英文表达
+- correction: 更好的转换方式和解释，英文部分必须用英文表达
 
 返回JSON格式：
 {{
@@ -618,7 +627,36 @@ def evaluate_answer(mode: str, question: Dict, user_answer: str, record_id: str 
         {{
             "type": "注意/建议/其他",
             "original_sentence": "用户的原句",
-            "correction": "更好的合并方式和解释（英文部分用英文）"
+            "correction": "更好的转换方式和解释（英文部分用英文）"
+        }}
+    ]
+}}""",
+
+        "Sentence Correction": f"""请批改以下句子改错题目。
+
+原句（包含错误）：{question.get('question', '')}
+错误类型：{question.get('error_type', '')}
+用户答案：{user_answer}
+
+你是我同桌，用轻松亲切的中文口吻批改，多鼓励。给出正确答案和高分表达。
+如果用户答案中有错误，请在 details 中列出每个错误，包含：
+- type: 错误类型标签，严格按照以下规则分类：
+  * "注意"：语法错误（时态、主谓一致、冠词、介词等）或单词错误（拼写错误、用词错误、词汇选择不当等）
+  * "建议"：语法和单词都正确，仅仅是表达不够流畅、不够优美或可以更地道
+  * "其他"：不属于以上两种情况的问题
+- original_sentence: 用户有问题的原句片段（保持原样）
+- correction: 修改建议，英文部分必须用英文表达，中文部分用中文表达
+
+返回JSON格式：
+{{
+    "summary": "整体评价（中文）",
+    "correct_answer": "正确答案（英文）",
+    "high_score_expression": "高分表达（英文）",
+    "details": [
+        {{
+            "type": "注意/建议/其他",
+            "original_sentence": "用户有问题的原句片段",
+            "correction": "修改建议（英文部分用英文，中文部分用中文）"
         }}
     ]
 }}""",
@@ -647,34 +685,6 @@ def evaluate_answer(mode: str, question: Dict, user_answer: str, record_id: str 
             "type": "注意/建议/其他",
             "original_sentence": "用户的改写",
             "correction": "更好的改写方式和解释（英文部分用英文）"
-        }}
-    ]
-}}""",
-
-        "Brainstorming": f"""请批改以下头脑风暴题目。
-
-话题：{question.get('topic', '')}
-用户答案：{user_answer}
-
-你是我同桌，用轻松亲切的中文口吻批改，多鼓励。给出更多论点建议和高分论点示例。
-如果用户答案中的论点可以改进，请在 details 中列出，包含：
-- type: 错误类型标签，严格按照以下规则分类：
-  * "注意"：语法错误（时态、主谓一致、冠词、介词等）或单词错误（拼写错误、用词错误、词汇选择不当等）
-  * "建议"：语法和单词都正确，仅仅是表达不够流畅、不够优美或可以更地道
-  * "其他"：不属于以上两种情况的问题
-- original_sentence: 用户的论点（保持原样）
-- correction: 更好的论点表达和解释，英文部分必须用英文表达
-
-返回JSON格式：
-{{
-    "summary": "整体评价（中文）",
-    "suggested_points": ["论点1", "论点2"],
-    "high_score_expression": "高分论点（英文）",
-    "details": [
-        {{
-            "type": "注意/建议/其他",
-            "original_sentence": "用户的论点",
-            "correction": "更好的论点表达和解释（英文部分用英文）"
         }}
     ]
 }}"""
@@ -911,43 +921,42 @@ def practice_page():
             st.markdown(f"**练习 {i}：{mode}**")
 
             # 显示题目
-            if mode == "Sentence Correction":
-                st.info(f"**病句：** {question.get('question', '')}")
+            if mode == "Phrase Practice":
+                phrases = ', '.join(question.get('phrases', []))
+                st.info(f"**短语：** {phrases}")
                 if question.get('hint'):
                     st.caption(f"💡 提示：{question.get('hint', '')}")
-                if question.get('error_type'):
-                    st.caption(f"🔍 错误类型：{question.get('error_type', '')}")
             elif mode == "Translation":
                 st.info(f"**中文句子：** {question.get('chinese_sentence', '')}")
                 if question.get('hint'):
                     st.caption(f"💡 提示：{question.get('hint', '')}")
                 if question.get('key_words'):
                     st.caption(f"🔑 重点词汇：{', '.join(question.get('key_words', []))}")
-            elif mode == "Word Upgrading":
-                st.info(f"**基础句子：** {question.get('basic_sentence', '')}")
+            elif mode == "Transition Practice":
+                st.info(f"**第一部分：** {question.get('part1', '')}")
+                st.info(f"**第二部分：** {question.get('part2', '')}")
                 if question.get('hint'):
                     st.caption(f"💡 提示：{question.get('hint', '')}")
-            elif mode == "Logic Linking":
-                st.info(f"**句子1：** {question.get('sentence1', '')}")
-                st.info(f"**句子2：** {question.get('sentence2', '')}")
+            elif mode == "Sentence Structure":
+                st.info(f"**句型结构：** {question.get('structure', '')}")
+                if question.get('structure_example'):
+                    st.caption(f"📝 句型示例：{question.get('structure_example', '')}")
                 if question.get('hint'):
                     st.caption(f"💡 提示：{question.get('hint', '')}")
-            elif mode == "Sentence Combining":
-                st.info(f"**句子：**")
-                for j, sent in enumerate(question.get('sentences', []), 1):
-                    st.write(f"{j}. {sent}")
-                if question.get('target_structure'):
-                    st.caption(f"🎯 目标句型：{question.get('target_structure', '')}")
+            elif mode == "Sentence Variety":
+                st.info(f"**原句：** {question.get('original_sentence', '')}")
+                if question.get('target_type'):
+                    st.caption(f"🎯 目标句型：{question.get('target_type', '')}")
                 if question.get('hint'):
                     st.caption(f"💡 提示：{question.get('hint', '')}")
+            elif mode == "Sentence Correction":
+                st.info(f"**病句：** {question.get('question', '')}")
+                if question.get('hint'):
+                    st.caption(f"💡 提示：{question.get('hint', '')}")
+                if question.get('error_type'):
+                    st.caption(f"🔍 错误类型：{question.get('error_type', '')}")
             elif mode == "Paraphrasing":
                 st.info(f"**原句：** {question.get('original_sentence', '')}")
-                if question.get('hint'):
-                    st.caption(f"💡 提示：{question.get('hint', '')}")
-            elif mode == "Brainstorming":
-                st.info(f"**话题：** {question.get('topic', '')}")
-                if question.get('topic_background'):
-                    st.caption(f"📝 话题背景：{question.get('topic_background', '')}")
                 if question.get('hint'):
                     st.caption(f"💡 提示：{question.get('hint', '')}")
 
@@ -962,29 +971,21 @@ def practice_page():
                 # 整体评价
                 st.success(evaluation.get("summary", ""))
 
-                # 参考答案
+                # 参考答案（根据不同题型显示不同字段）
                 if "correct_answer" in evaluation:
                     st.info(f"✅ **正确答案：** {evaluation['correct_answer']}")
                 elif "reference_translation" in evaluation:
                     st.info(f"✅ **参考译文：** {evaluation['reference_translation']}")
                 elif "reference_answer" in evaluation:
                     st.info(f"✅ **参考答案：** {evaluation['reference_answer']}")
+                elif "reference_sentence" in evaluation:
+                    st.info(f"✅ **参考造句：** {evaluation['reference_sentence']}")
                 elif "reference_paraphrase" in evaluation:
                     st.info(f"✅ **参考改写：** {evaluation['reference_paraphrase']}")
 
                 # 高分表达
                 if "high_score_expression" in evaluation:
                     st.warning(f"⭐ **高分表达：** {evaluation['high_score_expression']}")
-
-                # 参考升级句子
-                if "reference_sentence" in evaluation:
-                    st.warning(f"📚 **参考升级句子：** {evaluation['reference_sentence']}")
-
-                # 建议论点
-                if "suggested_points" in evaluation:
-                    st.warning(f"💡 **建议论点：**")
-                    for j, point in enumerate(evaluation["suggested_points"], 1):
-                        st.write(f"{j}. {point}")
 
                 # 详细反馈
                 if evaluation.get("details"):
@@ -1083,11 +1084,12 @@ def practice_page():
         st.subheader("📋 题目")
         
         mode = get_today_mode()
-        if mode == "Sentence Correction":
-            st.info(f"**病句：** {q.get('question', '')}")
+        if mode == "Phrase Practice":
+            phrases = ', '.join(q.get('phrases', []))
+            st.info(f"**短语：** {phrases}")
             st.caption(f"💡 提示：{q.get('hint', '')}")
-            st.caption(f"🔍 错误类型：{q.get('error_type', '')}")
             st.caption(f"⏱️ 建议作答时间：3-5分钟")
+            st.caption(f"📝 建议字数：10-20词")
         
         elif mode == "Translation":
             st.info(f"**中文句子：** {q.get('chinese_sentence', '')}")
@@ -1096,38 +1098,39 @@ def practice_page():
             st.caption(f"⏱️ 建议作答时间：5-8分钟")
             st.caption(f"📝 建议字数：15-25词")
         
-        elif mode == "Word Upgrading":
-            st.info(f"**基础句子：** {q.get('basic_sentence', '')}")
+        elif mode == "Transition Practice":
+            st.info(f"**第一部分：** {q.get('part1', '')}")
+            st.info(f"**第二部分：** {q.get('part2', '')}")
             st.caption(f"💡 提示：{q.get('hint', '')}")
             st.caption(f"⏱️ 建议作答时间：3-5分钟")
-        
-        elif mode == "Logic Linking":
-            st.info(f"**句子1：** {q.get('sentence1', '')}")
-            st.info(f"**句子2：** {q.get('sentence2', '')}")
-            st.caption(f"💡 提示：{q.get('hint', '')}")
-            st.caption(f"⏱️ 建议作答时间：5-8分钟")
-        
-        elif mode == "Sentence Combining":
-            st.info(f"**句子：**")
-            for i, sent in enumerate(q.get('sentences', []), 1):
-                st.write(f"{i}. {sent}")
-            st.caption(f"🎯 目标句型：{q.get('target_structure', '')}")
-            st.caption(f"💡 提示：{q.get('hint', '')}")
-            st.caption(f"⏱️ 建议作答时间：5-8分钟")
             st.caption(f"📝 建议字数：20-30词")
+        
+        elif mode == "Sentence Structure":
+            st.info(f"**句型结构：** {q.get('structure', '')}")
+            if q.get('structure_example'):
+                st.caption(f"📝 句型示例：{q.get('structure_example', '')}")
+            st.caption(f"💡 提示：{q.get('hint', '')}")
+            st.caption(f"⏱️ 建议作答时间：3-5分钟")
+            st.caption(f"📝 建议字数：15-25词")
+        
+        elif mode == "Sentence Variety":
+            st.info(f"**原句：** {q.get('original_sentence', '')}")
+            st.caption(f"🎯 目标句型：{q.get('target_type', '')}")
+            st.caption(f"💡 提示：{q.get('hint', '')}")
+            st.caption(f"⏱️ 建议作答时间：5-7分钟")
+            st.caption(f"📝 建议字数：15-25词")
+        
+        elif mode == "Sentence Correction":
+            st.info(f"**病句：** {q.get('question', '')}")
+            st.caption(f"💡 提示：{q.get('hint', '')}")
+            st.caption(f"🔍 错误类型：{q.get('error_type', '')}")
+            st.caption(f"⏱️ 建议作答时间：3-5分钟")
         
         elif mode == "Paraphrasing":
             st.info(f"**原句：** {q.get('original_sentence', '')}")
             st.caption(f"💡 提示：{q.get('hint', '')}")
             st.caption(f"⏱️ 建议作答时间：5-8分钟")
             st.caption(f"📝 建议字数：15-25词")
-        
-        elif mode == "Brainstorming":
-            st.info(f"**话题：** {q.get('topic', '')}")
-            st.caption(f"📝 话题背景：{q.get('topic_background', '')}")
-            st.caption(f"💡 提示：{q.get('hint', '')}")
-            st.caption(f"⏱️ 建议作答时间：8-10分钟")
-            st.caption(f"📝 建议字数：30-60词（3个论点，每点10-20词）")
         
         st.markdown("---")
         
@@ -1203,29 +1206,21 @@ def practice_page():
             # 整体评价
             st.success(eval_result.get("summary", ""))
 
-            # 参考答案
+            # 参考答案（根据不同题型显示不同字段）
             if "correct_answer" in eval_result:
                 st.info(f"✅ **正确答案：** {eval_result['correct_answer']}")
             elif "reference_translation" in eval_result:
                 st.info(f"✅ **参考译文：** {eval_result['reference_translation']}")
             elif "reference_answer" in eval_result:
                 st.info(f"✅ **参考答案：** {eval_result['reference_answer']}")
+            elif "reference_sentence" in eval_result:
+                st.info(f"✅ **参考造句：** {eval_result['reference_sentence']}")
             elif "reference_paraphrase" in eval_result:
                 st.info(f"✅ **参考改写：** {eval_result['reference_paraphrase']}")
 
             # 高分表达
             if "high_score_expression" in eval_result:
                 st.warning(f"⭐ **高分表达：** {eval_result['high_score_expression']}")
-
-            # 参考升级句子
-            if "reference_sentence" in eval_result:
-                st.warning(f"📚 **参考升级句子：** {eval_result['reference_sentence']}")
-
-            # 建议论点
-            if "suggested_points" in eval_result:
-                st.warning(f"💡 **建议论点：**")
-                for i, point in enumerate(eval_result["suggested_points"], 1):
-                    st.write(f"{i}. {point}")
 
             # 详细反馈
             if eval_result.get("details"):
@@ -1367,7 +1362,15 @@ def weakness_page():
     for mode, points in mode_groups.items():
         with st.expander(f"📌 {mode} ({len(points)}个)"):
             for i, point in enumerate(points, 1):
-                st.markdown(f"**{i}. {point.get('type', '')}**")
+                type_text = point.get('type', '')
+                # 根据类型设置不同的标签颜色，使用与侧边栏按钮相同的背景和边框
+                if type_text == "注意":
+                    tag_style = "background: rgba(255, 255, 255, 0.5); border: 1px solid rgba(102, 187, 106, 0.3); color: #e57373; padding: 2px 8px; border-radius: 4px; font-size: 12px; display: inline-block;"
+                elif type_text == "建议":
+                    tag_style = "background: rgba(255, 255, 255, 0.5); border: 1px solid rgba(102, 187, 106, 0.3); color: #66bb6a; padding: 2px 8px; border-radius: 4px; font-size: 12px; display: inline-block;"
+                else:
+                    tag_style = "background: rgba(255, 255, 255, 0.5); border: 1px solid rgba(102, 187, 106, 0.3); color: #5a8f62; padding: 2px 8px; border-radius: 4px; font-size: 12px; display: inline-block;"
+                st.markdown(f"**{i}.** <span style='{tag_style}'>{type_text}</span>", unsafe_allow_html=True)
                 st.write(f"❌ 问题：{point.get('issue', '')}")
                 st.write(f"✅ 建议：{point.get('correction', '')}")
                 st.caption(f"🕐 时间：{point.get('timestamp', '')}")
@@ -1419,21 +1422,21 @@ def history_page():
                 st.markdown(f"**{i}. {mode}**")
                 
                 # 显示题目
-                if mode == "Sentence Correction":
-                    st.info(f"题目：{question.get('question', '')}")
+                if mode == "Phrase Practice":
+                    phrases = ', '.join(question.get('phrases', []))
+                    st.info(f"短语：{phrases}")
                 elif mode == "Translation":
                     st.info(f"题目：{question.get('chinese_sentence', '')}")
-                elif mode == "Word Upgrading":
-                    st.info(f"题目：{question.get('basic_word', '')} - {question.get('word_meaning', '')}")
-                elif mode == "Logic Linking":
-                    st.info(f"题目：{question.get('sentence1', '')} + {question.get('sentence2', '')}")
-                elif mode == "Sentence Combining":
-                    sentences = question.get('sentences', [])
-                    st.info(f"题目：{' + '.join(sentences)}")
+                elif mode == "Transition Practice":
+                    st.info(f"题目：{question.get('part1', '')} + {question.get('part2', '')}")
+                elif mode == "Sentence Structure":
+                    st.info(f"句型：{question.get('structure', '')}")
+                elif mode == "Sentence Variety":
+                    st.info(f"原句：{question.get('original_sentence', '')}")
+                elif mode == "Sentence Correction":
+                    st.info(f"题目：{question.get('question', '')}")
                 elif mode == "Paraphrasing":
                     st.info(f"题目：{question.get('original_sentence', '')}")
-                elif mode == "Brainstorming":
-                    st.info(f"话题：{question.get('topic', '')}")
                 
                 # 显示用户答案
                 st.write(f"✍️ 你的答案：{user_answer}")
